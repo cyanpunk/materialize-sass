@@ -5,6 +5,7 @@
       _lastID++;
       return 'materialize-lean-overlay-' + _lastID;
     };
+    _stackModals = [];
 
   $.fn.extend({
     openModal: function(options) {
@@ -25,11 +26,21 @@
       $overlay = $('<div class="lean-overlay"></div>'),
       lStack = (++_stack);
 
-      // Store a reference of the overlay
-      $overlay.attr('id', overlayID).css('z-index', 1000 + lStack * 2);
-      $modal.data('overlay-id', overlayID).css('z-index', 1000 + lStack * 2 + 1);
+      //check if modal has been opened
+      //if the modal is not opened then add a new overlay
+      if( _stackModals.indexOf($modal.selector) === -1 ) {
+        // Store a reference of the modal
+        _stackModals.push($modal.selector);
+        // Store a reference of the overlay
+        $overlay.attr('id', overlayID).css('z-index', 1000 + lStack * 2);
+        $("body").append($overlay);
+      } else {
+          //if the modal has been opened already
+          //retrieve overlayID
+          overlayID = $modal.data('overlay-id');
+      }
 
-      $("body").append($overlay);
+      $modal.data('overlay-id', overlayID).css('z-index', 1000 + lStack * 2 + 1);
 
       // Override defaults
       options = $.extend(defaults, options);
@@ -114,6 +125,10 @@
 
       $overlay.velocity( { opacity: 0}, {duration: options.out_duration, queue: false, ease: "easeOutQuart"});
 
+      //remove modal from stack
+      if( _stackModals.indexOf($modal.selector) !== -1 ) {
+        _stackModals.splice(_stackModals.indexOf($modal.selector), 1);
+      }
 
       // Define Bottom Sheet animation
       if ($modal.hasClass('bottom-sheet')) {
